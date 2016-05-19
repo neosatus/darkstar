@@ -797,6 +797,11 @@ int32 map_cleanup(time_point tick, CTaskMgr::CTask* PTask)
                 {
                     if (map_session_data->shuttingDown == 0)
                     {
+                        // don't touch this char yet since they're still zoning
+                        if (Sql_Query(SqlHandle, "SELECT charid FROM char_stats WHERE charid = %u AND zoning = 1", PChar->id) == SQL_SUCCESS)
+                        {
+                            return;
+                        }
                         //[Alliance] fix to stop server crashing:
                         //if a party within an alliance only has 1 char (that char will be party leader)
                         //if char then disconnects we need to tell the server about the alliance change
