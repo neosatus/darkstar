@@ -3962,6 +3962,7 @@ void SmallPacket0x0C3(map_session_data_t* session, CCharEntity* PChar, CBasicPac
         {
             PItemLinkPearl->setID(515);
             PItemLinkPearl->setSubType(ITEM_UNLOCKED);
+            PItemLinkPearl->setFlag(PItemLinkPearl->getFlag() & ~ITEM_FLAG_EX);
 
             charutils::AddItem(PChar, LOC_INVENTORY, PItemLinkPearl);
         }
@@ -4001,6 +4002,7 @@ void SmallPacket0x0C4(map_session_data_t* session, CCharEntity* PChar, CBasicPac
             if (LinkshellID = linkshell::RegisterNewLinkshell(DecodedName, LinkshellColor))
             {
                 PItemLinkshell->setID(513);
+                PItemLinkshell->setFlag(PItemLinkshell->getFlag() | ITEM_FLAG_NOSALE);
                 PItemLinkshell->SetLSID(LinkshellID);
                 PItemLinkshell->setSignature(EncodedName); //because apparently the format from the packet isn't right, and is missing terminators
                 PItemLinkshell->SetLSColor(LinkshellColor);
@@ -4883,6 +4885,7 @@ void SmallPacket0x0FA(map_session_data_t* session, CCharEntity* PChar, CBasicPac
             rotation = (col >= 2 ? 3 : 1);
         }
 
+        bool wasInstalled = PItem->isInstalled();
         PItem->setInstalled(true);
         PItem->setCol(col);
         PItem->setRow(row);
@@ -4900,7 +4903,7 @@ void SmallPacket0x0FA(map_session_data_t* session, CCharEntity* PChar, CBasicPac
             "extra = '%s' "
             "WHERE location = 1 AND slot = %u AND charid = %u";
 
-        if (Sql_Query(SqlHandle, Query, extra, slotID, PChar->id) != SQL_ERROR && Sql_AffectedRows(SqlHandle) != 0)
+        if (Sql_Query(SqlHandle, Query, extra, slotID, PChar->id) != SQL_ERROR && Sql_AffectedRows(SqlHandle) != 0 && !wasInstalled)
         {
             PChar->getStorage(LOC_STORAGE)->AddBuff(PItem->getStorage());
 
