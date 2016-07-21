@@ -9878,6 +9878,25 @@ inline int32 CLuaBaseEntity::spawn(lua_State* L)
     return 0;
 }
 
+inline int32 CLuaBaseEntity::despawn(lua_State* L)
+{
+    DSP_DEBUG_BREAK_IF(m_PBaseEntity == nullptr);
+    DSP_DEBUG_BREAK_IF(m_PBaseEntity->objtype != TYPE_MOB);
+
+    CMobEntity* PMob = (CMobEntity*)m_PBaseEntity;
+
+    if (PMob->PAI->IsSpawned())
+    {
+        PMob->PAI->Despawn();
+        return 1;
+    }
+    else
+    {
+        ShowDebug(CL_CYAN"SpawnMob: <%s> is not spawned\n" CL_RESET, PMob->GetName());
+    }
+    return 0;
+}
+
 inline int32 CLuaBaseEntity::getCurrentAction(lua_State* L)
 {
     DSP_DEBUG_BREAK_IF(m_PBaseEntity == nullptr);
@@ -10643,6 +10662,52 @@ int32 CLuaBaseEntity::getAutomatonHead(lua_State* L)
     return 1;
 }
 
+int32 CLuaBaseEntity::isSpawned(lua_State* L)
+{
+    DSP_DEBUG_BREAK_IF(m_PBaseEntity == nullptr);
+    return ((CMobEntity*)m_PBaseEntity)->PAI->IsSpawned();
+}
+
+int32 CLuaBaseEntity::isEngaged(lua_State* L)
+{
+    DSP_DEBUG_BREAK_IF(m_PBaseEntity == nullptr);
+    return ((CMobEntity*)m_PBaseEntity)->PAI->IsEngaged();
+}
+
+int32 CLuaBaseEntity::clone(lua_State* L)
+{
+    DSP_DEBUG_BREAK_IF(m_PBaseEntity == nullptr);
+    DSP_DEBUG_BREAK_IF(m_PBaseEntity->objtype != TYPE_MOB);
+    DSP_DEBUG_BREAK_IF(lua_isnil(L, 1) || !lua_isuserdata(L, 1));
+
+    CLuaBaseEntity* PClonee = Lunar<CLuaBaseEntity>::check(L, 1);
+    CStatusEffectContainer* statuses = ((CMobEntity*)PClonee->m_PBaseEntity)->StatusEffectContainer;
+    EFFECT effect = EFFECT_NONE;
+    uint32 duration = 0;
+
+    ((CMobEntity*)m_PBaseEntity)->health.hp = ((CMobEntity*)PClonee->m_PBaseEntity)->health.hp > 0 ? ((CMobEntity*)PClonee->m_PBaseEntity)->health.hp : ((CMobEntity*)m_PBaseEntity)->GetMaxHP();
+    if (statuses->HasStatusEffect(EFFECT_SLEEP))
+    {
+        effect = EFFECT_SLEEP;
+        duration = statuses->GetStatusEffect(effect)->GetDuration();
+    }
+    if (duration == 0 && statuses->HasStatusEffect(EFFECT_SLEEP_II))
+    {
+        effect = EFFECT_SLEEP_II;
+        duration = statuses->GetStatusEffect(effect)->GetDuration();
+    }
+    if (duration == 0 && statuses->HasStatusEffect(EFFECT_LULLABY))
+    {
+        effect = EFFECT_LULLABY;
+        duration = statuses->GetStatusEffect(effect)->GetDuration();
+    }
+    if (duration > 0)
+    {
+        ((CMobEntity*)m_PBaseEntity)->StatusEffectContainer->AddStatusEffect(new CStatusEffect(effect, effect, 1, 0, duration));
+    };
+    return 1;
+}
+
 //==========================================================//
 
 const int8 CLuaBaseEntity::className[] = "CBaseEntity";
@@ -11069,6 +11134,7 @@ Lunar<CLuaBaseEntity>::Register_t CLuaBaseEntity::methods[] =
     LUNAR_DECLARE_METHOD(CLuaBaseEntity,createInstance),
     LUNAR_DECLARE_METHOD(CLuaBaseEntity,getEnmityList),
     LUNAR_DECLARE_METHOD(CLuaBaseEntity,spawn),
+    LUNAR_DECLARE_METHOD(CLuaBaseEntity,despawn),
     LUNAR_DECLARE_METHOD(CLuaBaseEntity,getCurrentAction),
     LUNAR_DECLARE_METHOD(CLuaBaseEntity,getAllegiance),
     LUNAR_DECLARE_METHOD(CLuaBaseEntity,setAllegiance),
@@ -11110,5 +11176,8 @@ Lunar<CLuaBaseEntity>::Register_t CLuaBaseEntity::methods[] =
     LUNAR_DECLARE_METHOD(CLuaBaseEntity,recalculateStats),
     LUNAR_DECLARE_METHOD(CLuaBaseEntity,checkImbuedItems),
     LUNAR_DECLARE_METHOD(CLuaBaseEntity,getNearbyEntities),
+    LUNAR_DECLARE_METHOD(CLuaBaseEntity,isSpawned),
+    LUNAR_DECLARE_METHOD(CLuaBaseEntity,isEngaged),
+    LUNAR_DECLARE_METHOD(CLuaBaseEntity,clone),
     {nullptr,nullptr}
 };

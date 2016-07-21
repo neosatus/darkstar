@@ -550,6 +550,7 @@ public:
     int32 createInstance(lua_State* L);
     int32 getEnmityList(lua_State* L);
     int32 spawn(lua_State* L);
+    int32 despawn(lua_State* L);
     int32 getCurrentAction(lua_State* L);
     int32 getAllegiance(lua_State* L);
     int32 setAllegiance(lua_State* L);
@@ -600,6 +601,10 @@ public:
     int32 getNearbyEntities(lua_State* L);
     int32 getAutomatonFrame(lua_State* L);
     int32 getAutomatonHead(lua_State* L);
+
+    int32 isSpawned(lua_State* L);
+    int32 isEngaged(lua_State* L);
+    int32 clone(lua_State* L);
 };
 
 #endif
