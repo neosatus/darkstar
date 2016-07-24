@@ -59,11 +59,11 @@ end;
 
 function onMobSpawn(mob)
     -- Make sure model is reset back to start
-	mob:setModelId(1839);
+    mob:setModelId(1839);
     
     -- Prevent death and hide HP until final phase
     mob:setUnkillable(true);
-	mob:hideHP(true);
+    mob:hideHP(true);
 
     -- Two hours to forced depop
     mob:setLocalVar("PWardenDespawnTime", os.time(t) + 7200);
